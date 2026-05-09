@@ -27,7 +27,9 @@ export default function Success() {
   if (!mounted) return null;
 
   return (
-    <div className="success-bg d-flex align-items-center justify-content-center vh-100 px-3">
+    <div className="success-bg">
+      <div className="bg-layer" />
+      <div className="d-flex align-items-center justify-content-center vh-100 px-3">
 
       <div className="glass-card p-4 w-100 text-center" style={{ maxWidth: "380px" }}>
         
@@ -50,16 +52,22 @@ export default function Success() {
           Go to Dashboard
         </button>
       </div>
+    </div>
 
-      {/* STYLES */}
+    {/* STYLES */}
       <style jsx>{`
         .success-bg {
           min-height: 100vh;
-          background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-                      url('/mobile-research.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          position: relative;
+        }
+
+        .bg-layer {
+          position: fixed;
+          inset: 0;
+          background: url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop")
+            center/cover no-repeat;
+          filter: brightness(0.2);
+          z-index: -1;
         }
 
         .glass-card {

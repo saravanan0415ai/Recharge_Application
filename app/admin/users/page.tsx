@@ -20,34 +20,42 @@ export default function Users() {
   });
   const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("users");
+  const [loading, setLoading] = useState(true);
 
-    if (stored) {
-      setUsers(JSON.parse(stored));
-    } else {
-      localStorage.setItem("users", JSON.stringify(data.users));
-      setUsers(data.users);
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const save = (updated: User[]) => {
-    localStorage.setItem("users", JSON.stringify(updated));
-    setUsers(updated);
   };
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleSubmit = async () => {
     if (!form.email || !form.password) return;
 
     if (editing) {
+      // In a real app, you'd call a PUT/PATCH API here
       const updated = users.map((u) =>
         u.id === form.id ? form : u
       );
-      save(updated);
+      setUsers(updated);
       setEditing(false);
     } else {
-      const newUser = { ...form, id: Date.now() };
-      save([...users, newUser]);
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+      if (res.ok) fetchUsers();
     }
 
     setForm({ id: 0, email: "", password: "", role: "user" });
@@ -58,186 +66,249 @@ export default function Users() {
     setEditing(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     const updated = users.filter((u) => u.id !== id);
-    save(updated);
+    setUsers(updated);
   };
 
   return (
-    <div className="page">
-      {/* Header */}
-      <div className="page-header">
-        <h2>User Management</h2>
-        <p>Manage system users and roles</p>
-      </div>
-
-      {/* FORM */}
-      <div className="card form-grid">
-        <input
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-
-        <input
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
-
-        <select
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-        >
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
-
-        <button onClick={handleSubmit}>
-          {editing ? "Update User" : "Add User"}
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <div className="card table">
-        <div className="row header">
-          <span>Email</span>
-          <span>Password</span>
-          <span>Role</span>
-          <span>Actions</span>
+    <div className="page-wrapper">
+      <div className="bg-layer" />
+      
+      <div className="page-content">
+        <div className="page-header">
+          <h2>User Management</h2>
+          <p>Create, edit and manage system users</p>
         </div>
 
-        {users.map((u) => (
-          <div key={u.id} className="row">
-            <span>{u.email}</span>
-            <span className="password">••••••••</span>
-            <span className={`role ${u.role}`}>{u.role}</span>
-
-            <div className="actions">
-              <button onClick={() => handleEdit(u)}>Edit</button>
-              <button className="delete" onClick={() => handleDelete(u.id)}>
-                Delete
-              </button>
-            </div>
+        {/* FORM SECTION */}
+        <div className="glass-card form-section mb-4">
+          <div className="inputs">
+            <input
+              className="glass-input"
+              placeholder="Email Address"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            <input
+              className="glass-input"
+              type="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+            <select
+              className="glass-input"
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
-        ))}
+          <button className="submit-btn" onClick={handleSubmit}>
+            {editing ? "Update User Details" : "Add New User"}
+          </button>
+        </div>
+
+        {/* LIST SECTION */}
+        <div className="glass-card table-section">
+          <div className="table-header">
+            <span>USER INFO</span>
+            <span>ROLE</span>
+            <span>ACTIONS</span>
+          </div>
+
+          <div className="user-list">
+            {loading ? (
+               <div className="p-5 text-center opacity-50">Loading users...</div>
+            ) : users.length === 0 ? (
+               <div className="p-5 text-center opacity-50">No users found</div>
+            ) : (
+              users.map((u, i) => (
+                <div key={`${u.id}-${i}`} className="user-row">
+                  <div className="user-info">
+                    <div className="email">{u.email}</div>
+                    <div className="pwd">••••••••</div>
+                  </div>
+                  <div className="user-role">
+                    <span className={`badge ${u.role}`}>{u.role}</span>
+                  </div>
+                  <div className="user-actions">
+                    <button className="edit-btn" onClick={() => handleEdit(u)}>Edit</button>
+                    <button className="del-btn" onClick={() => handleDelete(u.id)}>Delete</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* STYLES */}
       <style jsx>{`
-        .page {
-          color: white;
+        .page-wrapper {
+          min-height: 100vh;
+          color: #fff;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .bg-layer {
+          position: fixed;
+          inset: 0;
+          background: url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop")
+            center/cover no-repeat;
+          filter: brightness(0.2);
+          z-index: -1;
+        }
+
+        .page-content {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 2rem 1.5rem;
         }
 
         .page-header {
-          margin-bottom: 20px;
+          margin-bottom: 2rem;
         }
 
         .page-header h2 {
-          font-size: 1.5rem;
-          margin-bottom: 5px;
+          font-size: 1.8rem;
+          font-weight: 700;
+          margin: 0;
         }
 
         .page-header p {
-          color: #cbd5f5;
-          font-size: 0.9rem;
+          color: #94a3b8;
+          margin-top: 5px;
         }
 
-        /* 💎 Glass Card */
-        .card {
-          background: rgba(255,255,255,0.05);
+        .glass-card {
+          background: rgba(255, 255, 255, 0.05);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 16px;
-          padding: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          padding: 24px;
+        }
+
+        .inputs {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
           margin-bottom: 20px;
         }
 
-        /* 🧾 FORM GRID */
-        .form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
+        .glass-input {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+          padding: 12px 16px;
+          color: #fff;
+          outline: none;
         }
 
-        .form-grid input,
-        .form-grid select {
-          padding: 10px;
+        .glass-input:focus {
+          border-color: #6366f1;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .submit-btn {
+          width: 100%;
+          padding: 14px;
+          background: #6366f1;
+          border: none;
+          border-radius: 12px;
+          color: white;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .submit-btn:hover {
+          background: #4f46e5;
+          transform: translateY(-2px);
+        }
+
+        /* TABLE */
+        .table-header {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          padding: 12px 20px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 10px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #64748b;
+          margin-bottom: 10px;
+        }
+
+        .user-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          padding: 16px 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          align-items: center;
+          transition: 0.2s;
+        }
+
+        .user-row:hover {
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .email {
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .pwd {
+          font-size: 0.8rem;
+          color: #475569;
+          letter-spacing: 2px;
+        }
+
+        .badge {
+          padding: 4px 10px;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .badge.admin {
+          background: rgba(99, 102, 241, 0.2);
+          color: #818cf8;
+        }
+
+        .badge.user {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+        }
+
+        .user-actions {
+          display: flex;
+          gap: 10px;
+        }
+
+        .edit-btn, .del-btn {
+          padding: 6px 12px;
           border-radius: 8px;
           border: none;
-          background: #111;
-          color: white;
-        }
-
-        .form-grid button {
-          grid-column: span 2;
-          padding: 12px;
-          background: linear-gradient(135deg, #6366f1, #06b6d4);
-          border: none;
-          border-radius: 10px;
-          color: white;
+          font-size: 0.85rem;
           font-weight: 500;
-        }
-
-        /* 📊 TABLE */
-        .table {
-          overflow-x: auto;
-        }
-
-        .row {
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr 1fr;
-          padding: 12px;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-          align-items: center;
-        }
-
-        .header {
-          font-weight: 600;
-          color: #aaa;
-        }
-
-        .password {
-          letter-spacing: 2px;
-          color: #888;
-        }
-
-        .actions button {
-          margin-right: 5px;
-          padding: 6px 10px;
-          border: none;
-          border-radius: 6px;
-          background: rgba(255,255,255,0.1);
-          color: white;
           cursor: pointer;
         }
 
-        .actions .delete {
-          background: #ef4444;
+        .edit-btn {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
 
-        .role.admin {
-          color: #6366f1;
+        .del-btn {
+          background: rgba(239, 68, 68, 0.1);
+          color: #f87171;
         }
 
-        .role.user {
-          color: #22c55e;
-        }
-
-        /* 📱 Mobile */
-        @media (max-width: 600px) {
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .form-grid button {
-            grid-column: span 1;
-          }
-
-          .row {
-            grid-template-columns: 1fr;
-            gap: 6px;
-          }
+        .del-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
         }
       `}</style>
     </div>

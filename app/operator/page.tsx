@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { IoArrowBack, IoLogOutOutline } from "react-icons/io5";
 import Image from "next/image";
 
-import jio from "@/public/jio.png";
-import airtel from "@/public/airtel.png";
-import vi from "@/public/vi.png";
-import bsnl from "@/public/bsnl.png";
+import jio from "@/app/assets/jio.png";
+import airtel from "@/app/assets/airtel.png";
+import vi from "@/app/assets/vi.png";
+import bsnl from "@/app/assets/bsnl.png";
 
 export default function Operator() {
   const router = useRouter();
@@ -78,18 +78,10 @@ export default function Operator() {
         .bg-layer {
           position: fixed;
           inset: 0;
-          background: url("https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop")
+          background: url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop")
             center/cover no-repeat;
-          filter: brightness(0.35);
+          filter: brightness(0.2);
           z-index: -2;
-        }
-
-        /* 🌑 overlay */
-        .bg-layer::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.6);
         }
 
         /* 🔝 Navbar */

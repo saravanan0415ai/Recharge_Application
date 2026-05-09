@@ -1,11 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const [mobile, setMobile] = useState<string>("");
   const router = useRouter();
+
+  const [recentMobiles, setRecentMobiles] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch("/api/history");
+        const data = await res.json();
+        setHistory(data);
+        const mobiles = Array.from(new Set(data.map((h: any) => h.mobile))).slice(0, 3) as string[];
+        setRecentMobiles(mobiles);
+      } catch (error) {
+        console.error("Error fetching history:", error);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   const handleProceed = () => {
     if (mobile.length === 10 && !isNaN(Number(mobile))) {
@@ -23,6 +42,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-bg vh-100 d-flex flex-column">
+      <div className="bg-layer" />
 
       {/* Navbar */}
       <div className="premium-navbar d-flex align-items-center justify-content-between px-3 py-2">
@@ -44,61 +64,105 @@ export default function Dashboard() {
       {/* Content */}
       <div className="flex-grow-1 d-flex align-items-center justify-content-center px-3">
         
-        <div className="glass-card p-4 w-100" style={{ maxWidth: "380px" }}>
-          
-          <div className="text-center mb-4">
-            <h4 className="fw-bold text-white">Enter Mobile</h4>
-            <p className="small text-light opacity-75">
-              Recharge your number 📱
-            </p>
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label text-light">Mobile Number</label>
-            <input
-              type="tel"
-              maxLength={10}
-              className="form-control glass-input rounded-3"
-              placeholder="Enter 10-digit number"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-3">
-            <small className="text-light opacity-75">Recent</small>
-            <div className="d-flex gap-2 mt-2 flex-wrap">
-              {["9876543210", "9123456780"].map((num) => (
-                <span
-                  key={num}
-                  className="badge recent-badge"
-                  onClick={() => setMobile(num)}
-                >
-                  {num}
-                </span>
-              ))}
+        {!showHistory ? (
+          <div className="glass-card p-4 w-100" style={{ maxWidth: "380px" }}>
+            
+            <div className="text-center mb-4">
+              <h4 className="fw-bold text-white">Enter Mobile</h4>
+              <p className="small text-light opacity-75">
+                Recharge your number 📱
+              </p>
             </div>
+
+            <div className="mb-3">
+              <label className="form-label text-light">Mobile Number</label>
+              <input
+                type="tel"
+                maxLength={10}
+                className="form-control glass-input rounded-3"
+                placeholder="Enter 10-digit number"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+              />
+            </div>
+
+            {recentMobiles.length > 0 && (
+              <div className="mb-3">
+                <small className="text-light opacity-75">Recent</small>
+                <div className="d-flex gap-2 mt-2 flex-wrap">
+                  {recentMobiles.map((num) => (
+                    <span
+                      key={num}
+                      className="badge recent-badge"
+                      onClick={() => setMobile(num)}
+                    >
+                      {num}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleProceed}
+              className="btn glass-btn w-100 rounded-3 mt-2"
+            >
+              Proceed
+            </button>
+
+            <button
+              onClick={() => setShowHistory(true)}
+              className="btn btn-link text-light text-decoration-none w-100 mt-3 small opacity-75"
+            >
+              View Recharge History
+            </button>
+
           </div>
+        ) : (
+          <div className="glass-card p-4 w-100" style={{ maxWidth: "450px", maxHeight: "80vh", overflowY: "auto" }}>
+             <div className="d-flex justify-content-between align-items-center mb-4">
+                <h4 className="fw-bold text-white m-0">History</h4>
+                <button className="btn-close btn-close-white" onClick={() => setShowHistory(false)}></button>
+             </div>
 
-          <button
-            onClick={handleProceed}
-            className="btn glass-btn w-100 rounded-3 mt-2"
-          >
-            Proceed
-          </button>
-
-        </div>
+             <div className="history-items">
+                {history.length === 0 ? (
+                  <p className="text-center text-light opacity-50 my-5">No records found</p>
+                ) : (
+                  history.map((h, i) => (
+                    <div key={h.id || i} className="history-item-row p-3 mb-2 rounded-3">
+                      <div className="d-flex justify-content-between">
+                        <span className="text-white fw-bold">{h.mobile}</span>
+                        <span className="text-info fw-bold">₹{h.price}</span>
+                      </div>
+                      <div className="d-flex justify-content-between small text-light opacity-75 mt-1">
+                        <span>{h.data} • {h.validity}</span>
+                        <span>{h.date}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+             </div>
+          </div>
+        )}
       </div>
 
-      {/* STYLES */}
       <style jsx>{`
+        .history-item-row {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
         .dashboard-bg {
           min-height: 100vh;
-          background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-                      url('/mobile-research.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          background: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop')
+            center/cover no-repeat;
+        }
+        
+        .bg-layer {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          z-index: 0;
         }
 
         .premium-navbar {

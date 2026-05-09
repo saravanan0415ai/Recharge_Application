@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { IoPersonAddOutline } from "react-icons/io5";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -41,88 +42,127 @@ export default function Signup() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={{ color: "#fff" }}>Signup</h2>
+    <div className="signup-bg">
+      <div className="bg-layer" />
+      
+      <div className="d-flex align-items-center justify-content-center vh-100 px-3">
+        <div className="glass-card p-4 w-100" style={{ maxWidth: "380px" }}>
+          
+          <div className="text-center mb-4">
+            <div className="mb-2">
+              <IoPersonAddOutline size={40} color="#fff" />
+            </div>
+            <h2 className="fw-bold text-white">Create Account</h2>
+            <p className="small text-light opacity-75">
+              Join us today 🚀
+            </p>
+          </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-        />
+          <div className="mb-3">
+            <label className="form-label text-light">Email Address</label>
+            <input
+              type="email"
+              className="form-control glass-input rounded-3"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-        />
+          <div className="mb-3">
+            <label className="form-label text-light">Password</label>
+            <input
+              type="password"
+              className="form-control glass-input rounded-3"
+              placeholder="Create password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          style={styles.input}
-        />
+          <div className="mb-3">
+            <label className="form-label text-light">Confirm Password</label>
+            <input
+              type="password"
+              className="form-control glass-input rounded-3"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
 
-        <button onClick={handleSignup} style={styles.btn}>
-          Sign Up
-        </button>
+          <button onClick={handleSignup} className="btn glass-btn w-100 rounded-3 mt-3">
+            Sign Up
+          </button>
 
-        <p style={styles.link} onClick={() => router.push("/")}>
-          Already have account? Login
-        </p>
+          <div className="text-center mt-4">
+            <small className="text-light opacity-75">
+              Already have an account?{" "}
+              <span
+                onClick={() => router.push("/")}
+                style={{ cursor: "pointer", textDecoration: "underline", color: "#3b82f6" }}
+              >
+                Login
+              </span>
+            </small>
+          </div>
+        </div>
       </div>
+
+      <style jsx>{`
+        .signup-bg {
+          min-height: 100vh;
+          position: relative;
+          color: #fff;
+          font-family: "Inter", sans-serif;
+        }
+
+        .bg-layer {
+          position: fixed;
+          inset: 0;
+          background: url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop")
+            center/cover no-repeat;
+          filter: brightness(0.2);
+          z-index: -1;
+        }
+
+        .glass-card {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-input {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: #fff;
+        }
+
+        .glass-input::placeholder {
+          color: #cbd5e1;
+        }
+
+        .glass-input:focus {
+          outline: none;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+          background: rgba(255, 255, 255, 0.25);
+        }
+
+        .glass-btn {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          color: white;
+          border: none;
+          font-weight: 600;
+          transition: 0.3s;
+        }
+
+        .glass-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+        }
+      `}</style>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundImage:
-      "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('5137774.webp')",
-    backgroundSize: "cover",
-  },
-
-  card: {
-    background: "rgba(255,255,255,0.08)",
-    backdropFilter: "blur(12px)",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "320px",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "15px",
-    border: "1px solid rgba(255,255,255,0.2)",
-  },
-
-  input: {
-    padding: "12px",
-    borderRadius: "8px",
-    background: "#020617",
-    color: "#fff",
-    border: "1px solid #475569",
-    transition: "0.3s",
-  },
-
-  btn: {
-    padding: "12px",
-    background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-    border: "none",
-    borderRadius: "8px",
-    color: "#fff",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-
-  link: {
-    textAlign: "center" as const,
-    color: "#38bdf8",
-    cursor: "pointer",
-  },
-};

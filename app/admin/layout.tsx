@@ -8,7 +8,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="admin">
-      <div className="bg" />
+      <div className="bg-layer" />
 
       <header className="topbar">
         <Link href="/" className="icon-btn">
